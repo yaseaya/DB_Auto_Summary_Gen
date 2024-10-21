@@ -1,0 +1,24 @@
+AV/
+.venv/
+
+*.txt
+*.wav
+
+
+# 忽略 Python 字节码文件
+__pycache__/
+*.pyc
+
+# 忽略虚拟环境
+/.venv/
+
+
+# 忽略日志文件
+*.log
+*.txt
+
+# 忽略其他特定文件
+*.DS_Store
+
+# 忽略其他特定文件夹
+/SampleTxt/
