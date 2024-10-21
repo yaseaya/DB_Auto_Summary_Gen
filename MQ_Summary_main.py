@@ -18,9 +18,9 @@ def callback_txt_file_queue(ch, method, properties, body):
     print(f"Received from txt_file_queue: {txt_file_name}")
     
     try:
-        from Doubao_Art_summary import main as doubao_art_summary_main
+        from DouBao_Article_Summary import main as doubao_art_summary_main
         doubao_art_summary_main(txt_file_name)  # 调用Doubao_Art_summary的主函数
-        subprocess.Popen(['python', 'Doubao_Art_summary.py', txt_file_name])  # 启动另一个Python程序
+        subprocess.Popen(['python', 'Doubao_Article_summary.py', txt_file_name])  # 启动另一个Python程序
     except FileNotFoundError:
         print("文件或目录不存在")  # 捕获文件未找到异常
         
@@ -43,6 +43,11 @@ def callback_av_file_queue(ch, method, properties, body):
 def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))  # 连接到RabbitMQ
     channel = connection.channel()
+
+    # 清除已存在的txt_file_queue
+    channel.queue_delete(queue='txt_file_queue')
+    # 清除已存在的av_file_queue
+    channel.queue_delete(queue='av_file_queue')
 
     channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
     channel.queue_declare(queue='av_file_queue')   # 声明av_file_queue

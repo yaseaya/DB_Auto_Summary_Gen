@@ -1,4 +1,5 @@
 import pika
+import argparse
 
 # 设计思路
 # 本程序用于发送消息到RabbitMQ的两个队列：txt_file_queue和av_file_queue。
@@ -26,6 +27,28 @@ def send_message_AV_File_Ready(av_file_name):
     print(f"Sent {av_file_name} to av_file_queue")  # 打印发送的消息
     connection.close()  # 关闭连接
 
+def main(file_type, file_name):
+    """
+    发送文件名到RabbitMQ的txt_file_queue或av_file_queue。
+
+    参数:
+    - file_type (str): 文件类型，必须是'txt'或'av'。
+    - file_name (str): 要发送的文件名。
+    """
+    if file_type == "txt":
+        send_message_Txt_File_Ready(file_name)
+    elif file_type == "av":
+        send_message_AV_File_Ready(file_name)
+    else:
+        print("Invalid type. Please use 'txt' or 'av'.")
+
 if __name__ == "__main__":
-    send_message_Txt_File_Ready("example_file_02.txt")  # 发送示例文件名到txt_file_queue
-    send_message_AV_File_Ready("example_av_file.txt")  # 发送示例文件名到av_file_queue     
+    # 使用argparse解析命令行参数
+    parser = argparse.ArgumentParser(description='Send messages to RabbitMQ queues.')
+    parser.add_argument('file_type', type=str, help="File type: 'txt' or 'av'")
+    parser.add_argument('file_name', type=str, help="The name of the file to send")
+
+    args = parser.parse_args()  # 解析参数
+
+    # 调用主函数
+    main(args.file_type, args.file_name)
