@@ -14,13 +14,22 @@ import time
 # 3. 发送消息到这些队列以触发相应的处理程序。
 
 def reconnect_MQ():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))  # 重新连接到RabbitMQ
-    channel = connection.channel()
-    channel.queue_declare(queue='txt_file_queue')  # 重新声明txt_file_queue
-    channel.queue_declare(queue='av_file_queue')   # 重新声明av_file_queue
-    channel.basic_consume(queue='txt_file_queue', on_message_callback=callback_txt_file_queue, auto_ack=False)  # 重新注册消费者
-    channel.basic_consume(queue='av_file_queue', on_message_callback=callback_av_file_queue, auto_ack=False)  # 重新注册消费者
-
+    retry_count = 0
+    while retry_count < 5:
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))  # 重新连接到RabbitMQ
+            channel = connection.channel()
+            # 重新声明队列和注册消费者
+            channel.queue_declare(queue='txt_file_queue')
+            channel.queue_declare(queue='av_file_queue')
+            channel.basic_consume(queue='txt_file_queue', on_message_callback=callback_txt_file_queue, auto_ack=False)
+            channel.basic_consume(queue='av_file_queue', on_message_callback=callback_av_file_queue, auto_ack=False)
+            print("重新连接成功")
+            return channel  # 返回连接的channel
+        except pika.exceptions.AMQPConnectionError:
+            print("连接失败，正在重试...")
+            time.sleep(5)  # 等待5秒后重试
+            retry_count += 1
 def callback_txt_file_queue(ch, method, properties, body):
     txt_file_name = body.decode()  # 解码接收到的消息
     print(f"Received from txt_file_queue: {txt_file_name}")
@@ -50,7 +59,7 @@ def callback_av_file_queue(ch, method, properties, body):
     except FileNotFoundError:
         print("文件或目录不存在")  # 捕获文件未找到异常
     except Exception as e:
-        print(f"处理消息时发生错误: {e}")  # 捕获其他异常
+        print(f"处理消息时发���错误: {e}")  # 捕获其他异常
     
     # 手动确认消息
     try:
@@ -81,7 +90,7 @@ def main():
     try:
         channel.start_consuming()  # 开始消费消息
     except pika.exceptions.ConnectionClosed:
-        print("连接丢失，尝试重新连接...")
+        print("连接丢失，���试重新连接...")
         # 重新连接的逻辑
         time.sleep(5)
         reconnect_MQ()
@@ -110,7 +119,7 @@ def send_av_message(av_file_name):
     channel.basic_publish(exchange='', routing_key='av_file_queue', body=av_file_name,
         properties=pika.BasicProperties(
             delivery_mode=2,  # 使消息持久化
-        ))  # 发送消息
+        ))  # 发送消���
     print(f"Sent {av_file_name} to av_file_queue")
     connection.close()  # 关闭连接
 
