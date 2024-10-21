@@ -1,7 +1,6 @@
 AV/
 .venv/
 
-*.txt
 *.wav
 
 
@@ -15,7 +14,6 @@ __pycache__/
 
 # 忽略日志文件
 *.log
-*.txt
 
 # 忽略其他特定文件
 *.DS_Store
