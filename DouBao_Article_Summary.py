@@ -9,6 +9,14 @@ import time  # 导入time库以处理时间延迟
 import getpass  # 导入getpass库以获取当前用户名
 import os
 
+
+def print_sleep(sleep_time):
+    for i in range(sleep_time):  # 模拟处理20次
+        # print("sleep time " + str(i) + " seconds")  # 打印处理状态和时间
+        time.sleep(1)  # 每次处理间隔1秒
+
+
+
 def main(file_path):  # 增加_main_函数，接收file_path作为参数
     print('########################## 【豆包总结 】脚本开始 ##########################')
 
@@ -17,7 +25,7 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         return
     else:
         print(f"{file_path} Existed, continue")
-
+            
     # 获取当前用户名并设置Chrome用户数据目录路径
     username = getpass.getuser()  # 获取当前系统用户名
     user_profile_path = r'C:\Users\%s\AppData\Local\Google\Chrome\User Data' % username  # 设置Chrome用户数据目录路径
@@ -30,7 +38,7 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
     options.add_argument('--ignore-certificate-errors')  # 忽略证书错误
 
     # 等待5秒
-    time.sleep(3)  # 暂停5秒以确保设置生效
+    print_sleep(1)  # 暂停5秒以确保设置生效
 
     # 使用配置的选项初始化WebDriver
     driver = webdriver.Chrome(options=options)  # 初始化Chrome浏览器驱动
@@ -40,7 +48,21 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         driver.get('https://www.doubao.com/chat/')  # 访问豆包AI聊天页面
 
         # 等待页面加载
-        time.sleep(2)  # 暂停2秒以等待页面加载完成
+        print_sleep(10)  # 暂停10秒以等待页面加载完成
+
+        # 等待"新对话"按钮生成完成
+        generating = True  # 初始化生成状态为进行中
+        find_element_count = 0
+        while generating:  # 循环直到生成完成
+            try:
+                element_to_click = driver.find_element(By.XPATH, "//*[text()='新对话']")  # 定位"新对话"按钮
+                generating = False  # 更新生成状态为完成
+            except:
+                print_sleep(3)  # 暂停3秒以等待生成完成
+                find_element_count += 1
+                if find_element_count > 30:
+                    print("except: 状态变化的时候，element 会变化报错")  # 捕获异常并打印错误信息
+                    exit()  # 退出程序
 
         # 点击"新对话"按钮
         element_to_click = driver.find_element(By.XPATH, "//*[text()='新对话']")  # 定位"新对话"按钮
@@ -53,7 +75,7 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         actions.move_to_element(element_to_click).click().perform()  # 移动到按钮并点击
 
         # 等待操作完成
-        time.sleep(2)  # 暂停2秒以等待操作完成
+        print_sleep(2)  # 暂停2秒以等待操作完成
 
         # 上传文件
         driver.find_element(By.XPATH, "//input[@type='file']").send_keys(file_path)  # 定位文件上传输入框并上传文件
@@ -67,11 +89,11 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         is_disabled = True  # 初始化按钮状态为禁用
         while is_disabled:  # 循环直到按钮可用
             try:
-                time.sleep(1)  # 暂停1秒
+                print_sleep(1)  # 暂停1秒
                 print("发送按钮 状态： " + str(element_to_click.is_enabled()))  # 打印按钮状态
                 is_disabled = not element_to_click.is_enabled()  # 更新按钮状态
             except:
-                print("except: 状态变化的时候，element 会变化报错")  # 捕获异常并打印错误信息
+                print("except: 状态变化的时候，element 会变化报错")  # 捕获异常并打��错误信息
                 break  # 跳出循环
 
         # 点击发送按钮
@@ -86,41 +108,45 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
                 element_to_click = driver.find_element(By.CSS_SELECTOR, "[data-testid='message_action_copy']")  # 定位复制按钮
                 generating = False  # 更新生成状态为完成
             except:
-                time.sleep(5)  # 暂停5秒以等待生成完成
+                print_sleep(5)  # 暂停5秒以等待生成完成
 
         # 点击复制按钮
         actions = ActionChains(driver)  # 创建新的动作链
         actions.move_to_element(element_to_click).click().perform()  # 移动到复制按钮并点击
 
         # 获取剪贴板内容
-        clipboard_content = pyperclip.paste()  # 从剪贴板获取内容
+        try:
+            clipboard_content = pyperclip.paste()  # 从剪贴板获取内容
+        except Exception as e:
+            print(f"处理消息时发生错误: {e}")  # 捕获并打印异常信息
+            clipboard_content = ""  # 如果获取失败，设置为空字符串
 
         # 打印剪贴板内容
         print(clipboard_content)  # 打印剪贴板内容
 
         ###########################################################
         # 在提示词输入框中输入文本
-        time.sleep(5)  # 暂停5秒以等待用户查看结果
+        print_sleep(3)  # 暂停5秒以等待用户查看结果
         iuput_field = driver.find_element(By.CSS_SELECTOR, "[data-testid='chat_input_input']")  # 定位输入框
         iuput_field.send_keys("再详细点")  # 输入新的提示词
 
         # 点击发送按钮
-        time.sleep(2)  # 暂停2秒以等待输入完成
+        print_sleep(2)  # 暂停2秒以等待输入完成
         element_to_click = driver.find_element(By.ID, "flow-end-msg-send")  # 重新定位发送按钮
         actions = ActionChains(driver)  # 创建新的动作链
         actions.move_to_element(element_to_click).click().perform()  # 移动到按钮并点击
         print("发送按钮 再次点击")  # 打印发送按钮点击信息
 
         # 等待生成完成
-        time.sleep(2)  # 暂停2秒以等待生成完成
+        print_sleep(2)  # 暂停2秒以等待生成完成
         generating = True  # 初始化生成状态为进行中
         while generating:  # 循环直到生成完成
             try:
                 regenerate_button = driver.find_element(By.CSS_SELECTOR, "[data-testid='message_action_regenerate']")  # 定位重新生成按钮
-                generating = False  # 更新生成状态为完成
+                generating = False  # 更新��成状态为完成
             except:
                 print("except: 状态变化的时候，element 会变化报错")  # 捕获异常并打印错误信息
-                time.sleep(5)  # 暂停5秒以等待生成完成
+                print_sleep(5)  # 暂停5秒以等待生成完成
 
         copy_button = driver.find_element(By.CSS_SELECTOR, "[data-testid='message_action_copy']")  # 定位复制按钮
 
@@ -130,13 +156,17 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         actions.move_to_element(copy_button).click().perform()  # 移动到复制按钮并点击
 
         # 获取剪贴板内容
-        clipboard_content = pyperclip.paste()  # 从剪贴板获取内容
+        try:
+            clipboard_content = pyperclip.paste()  # 从剪贴板获取内容
+        except Exception as e:
+            print(f"处理消息时发生错误: {e}")  # 捕获并打印异常信息
+            clipboard_content = ""  # 如果获取失败，设置为空字符串
 
         # 打印剪贴板内容
         print(clipboard_content)  # 打印剪贴板内容
 
         # 等待10秒
-        time.sleep(5)  # 暂停10秒以等待用户查看结果
+        print_sleep(5)  # 暂停10秒以等待用户查看结果
 
         # 将内容写入文件
         with open("sample.txt", "w", encoding="utf-8") as file:  # 打开文件以写入
@@ -145,10 +175,9 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
     finally:
         # 脚本结束
         driver.quit()  # 关闭浏览器驱动
-        # 等待10秒
         print('########################## 【豆包总结 】脚本结束 ##########################')
         print('Waiting for messages. To exit press CTRL+C')
-        time.sleep(15)  # 暂停10秒以释放资源
+        print_sleep(5)  # 暂停10秒以释放资源
 
 # 如果该文件作为主程序运行，则调用main函数
 # if __name__ == "__main__":

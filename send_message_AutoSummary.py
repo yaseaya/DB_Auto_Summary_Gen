@@ -14,7 +14,10 @@ def send_message_Txt_File_Ready(txt_file_name):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
-    channel.basic_publish(exchange='', routing_key='txt_file_queue', body=txt_file_name)  # 发送消息
+    channel.basic_publish(exchange='', routing_key='txt_file_queue', body=txt_file_name,
+        properties=pika.BasicProperties(
+            delivery_mode=2,  # 使消息持久化
+        ))  # 发送消息
     print(f"Sent {txt_file_name} to txt_file_queue")  # 打印发送的消息
     connection.close()  # 关闭连接
 
@@ -23,7 +26,10 @@ def send_message_AV_File_Ready(av_file_name):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='av_file_queue')  # 声明av_file_queue    
-    channel.basic_publish(exchange='', routing_key='av_file_queue', body=av_file_name)  # 发送消息
+    channel.basic_publish(exchange='', routing_key='av_file_queue', body=av_file_name,
+        properties=pika.BasicProperties(
+            delivery_mode=2,  # 使消息持久化
+        ))  # 发送消息
     print(f"Sent {av_file_name} to av_file_queue")  # 打印发送的消息
     connection.close()  # 关闭连接
 
