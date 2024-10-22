@@ -11,7 +11,7 @@ import argparse
 
 def send_message_Txt_File_Ready(txt_file_name):
     # 创建与RabbitMQ的连接
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
     channel.basic_publish(exchange='', routing_key='txt_file_queue', body=txt_file_name,
@@ -23,7 +23,7 @@ def send_message_Txt_File_Ready(txt_file_name):
 
 def send_message_AV_File_Ready(av_file_name):
     # 创建与RabbitMQ的连接
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='av_file_queue')  # 声明av_file_queue    
     channel.basic_publish(exchange='', routing_key='av_file_queue', body=av_file_name,

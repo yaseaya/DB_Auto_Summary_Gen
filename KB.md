@@ -24,10 +24,6 @@ python -m venv venv
 在虚拟环境激活后，您可以安装所需的依赖项，例如 WhisperJax 和 PyTorch：
 
 
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-Looking in indexes: https://download.pytorch.org/whl/cu118
-
-
 
 ### 配置 VSCode 使用虚拟环境
 
