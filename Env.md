@@ -1,7 +1,11 @@
 
+# 生成 requirements.txt
+pip freeze > requirements.txt
 
+# 安装 requirements.txt
 pip install -r requirements.txt
 
+# 安装 torch torchvision torchaudio
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 Looking in indexes: https://download.pytorch.org/whl/cu118
