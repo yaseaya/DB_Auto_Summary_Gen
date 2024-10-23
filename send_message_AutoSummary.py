@@ -10,7 +10,7 @@ import argparse
 # 2. 确保RabbitMQ服务正在运行，并且相应的消费者程序正在监听这些队列。
 
 def send_message_Txt_File_Ready(txt_file_name):
-    # 创建与RabbitMQ的连接
+    # 创建与RabbitMQ的连接，设置心跳时间为600秒
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
@@ -22,7 +22,7 @@ def send_message_Txt_File_Ready(txt_file_name):
     connection.close()  # 关闭连接
 
 def send_message_AV_File_Ready(av_file_name):
-    # 创建与RabbitMQ的连接
+    # 创建与RabbitMQ的连接，设置心跳时间为600秒
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))
     channel = connection.channel()  # 创建频道
     channel.queue_declare(queue='av_file_queue')  # 声明av_file_queue    

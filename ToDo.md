@@ -1,2 +1,3 @@
-确保一个任务完成后再接收下一个任务： 有问题：
+
+将 FolderMonitor.py 作为 Windows 服务运行   
 
