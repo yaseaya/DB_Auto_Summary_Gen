@@ -93,13 +93,13 @@ def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))  # 连接到RabbitMQ
     channel = connection.channel()
 
-    # 清除已存在的txt_file_queue
-    # channel.queue_delete(queue='txt_file_queue')
-    # # 清除已存在的av_file_queue
-    # channel.queue_delete(queue='av_file_queue')
+    if(1):  # 清除已存在的txt_file_queue
+        channel.queue_delete(queue='txt_file_queue')
+        # 清除已存在的av_file_queue
+        channel.queue_delete(queue='av_file_queue')
 
-    # channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
-    # channel.queue_declare(queue='av_file_queue')   # 声明av_file_queue
+        channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
+        channel.queue_declare(queue='av_file_queue')   # 声明av_file_queue
 
     # 设置预取计数为1，确保一个任务完成后再接收下一个任务
     channel.basic_qos(prefetch_count=1)
