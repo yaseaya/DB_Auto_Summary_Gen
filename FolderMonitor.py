@@ -4,14 +4,20 @@ import json
 import watchdog.events
 import watchdog.observers
 import Conf_Load
+from Utility_Str import Utility_Str
+# from Utility_Str import add_quotes_to_string
+# from Utility_Str import extract_parameters_to_str
 from send_message_AutoSummary import send_message_Txt_File_Ready
+
 # from Conf_Load import load_settings, Find_FolderConf  # 使用 conf_load.py 中的 load_settings 函数
 
 class FileEventHandler(watchdog.events.FileSystemEventHandler):
     def __init__(self, extensions, folder_instance):  # 添加构造函数参数
         self.extensions = extensions
         self.folder_instance = folder_instance  # 保存文件夹实例
-        self.execution_cmd = folder_instance.get('execution_cmd', '')  # 使用 get 方法安全获取 execution_cmd
+        self.execution_cmd = folder_instance.execution_cmd  # 直接访问 execution_cmd 属性
+        self.name = folder_instance.name  # 直接访问 name 属性
+        self.target_Folder_Name = folder_instance.target_Folder_Name    # 直接访问 name_target 属性
 
     def on_created(self, event):
         # 检查是否是文件
@@ -23,10 +29,10 @@ class FileEventHandler(watchdog.events.FileSystemEventHandler):
                 print(f"New file created: {event.src_path}")
                 # 添加执行命令
                 # self.execution_cmd = self.execution_cmdfolder_instance_ToBe_Summarized.execution_cmd  # 使用正确的文件夹实例
-                cmd = self.execution_cmd + " " + event.src_path
+                cmd = self.execution_cmd + " " + Utility_Str.add_quotes_to_string(event.src_path) + " " + Utility_Str.add_quotes_to_string(self.target_Folder_Name)
                 print(cmd)
                 # os.system(cmd)
-                send_message_Txt_File_Ready(event.src_path)
+                send_message_Txt_File_Ready(Utility_Str.add_quotes_to_string(event.src_path), Utility_Str.add_quotes_to_string(self.target_Folder_Name))        
 
 def main():
     # 加载配置
@@ -40,7 +46,7 @@ def main():
     for folder in folders:
         event_handler = FileEventHandler(extensions, folder)  # 使用正确的文件夹实例
         observer = watchdog.observers.Observer()  # 创建观察者实例
-        observer.schedule(event_handler, folder['path'], recursive=False)  # 在创建观察者后进行调度
+        observer.schedule(event_handler, folder.path, recursive=False)  # 在创建观察者后进行调度
         # 启动观察者
         observer.start()
         print("Monitoring folders...")

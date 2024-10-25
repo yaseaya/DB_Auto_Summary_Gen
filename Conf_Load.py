@@ -1,27 +1,34 @@
 import json
+# import Utility_Str
+
 
 class MonitorFolder:
-    def __init__(self, name, path, description, extensions, execution_cmd, File_Handling_After_Execution, MoveCopyTo, BackupTo):
+    def __init__(self, name, path, target_Folder_Name, name_target, extensions, execution_cmd, File_Handling_After_Execution, MoveCopyTo, BackupTo):
         self.name = name
         self.path = path
-        self.description = description
+        self.target_Folder_Name = target_Folder_Name
+        self.name_target = name_target
         self.extensions = extensions
         self.execution_cmd = execution_cmd
         self.File_Handling_After_Execution = File_Handling_After_Execution
         self.MoveCopyTo = MoveCopyTo
         self.BackupTo = BackupTo
 
-    def Find_FolderConf(self, folder_name):
-        """
-        通过查找folder's name 返回 monitor_folder_instances。
+def Find_FolderConf(folders, folder_name):
+    """
+    通过查找文件夹名称返回 MonitorFolder 实例。
 
-        参数:
-        - folder_name: 文件夹的名称
+    参数:
+    - folders: MonitorFolder 实例的列表
+    - folder_name: 要查找的文件夹名称
 
-        返回:
-        - list: 包含指定文件夹名称的 monitor_folder_instances
-        """
-        return [folder for folder in self.monitor_folder_instances if folder.name == folder_name]
+    返回:
+    - MonitorFolder 实例或 None
+    """
+    for folder in folders:
+        if folder.name == folder_name:
+            return folder
+    return None  # 如果未找到，返回 None
 
 def load_settings(file_path):
     """
@@ -42,7 +49,8 @@ def load_settings(file_path):
                 monitor_folder_instance = MonitorFolder(
                     folder['name'],
                     folder['path'],
-                    folder['description'],
+                    folder['target_Folder_Name'],
+                    folder['name_target'],
                     folder['extensions'],
                     folder['execution_cmd'],
                     folder['File_Handling_After_Execution'],
@@ -51,17 +59,7 @@ def load_settings(file_path):
                 )
                 monitor_folder_instances.append(monitor_folder_instance)
 
-                # print("文件夹名称:", monitor_folder_instance.name)
-                # print("文件夹路径:", monitor_folder_instance.path)
-                # print("文件夹描述:", monitor_folder_instance.description)
-                # print("文件后缀名:", monitor_folder_instance.extensions)
-                # print("执行命令:", monitor_folder_instance.execution_cmd)
-                # print("文件操作动作:", monitor_folder_instance.File_Handling_After_Execution)
-                # print("移动/复制到:", monitor_folder_instance.MoveCopyTo)
-                # print("备份到:", monitor_folder_instance.BackupTo)
-                # print("--------------------")
-
-            return monitor_folders
+            return monitor_folder_instances  # 返回 MonitorFolder 实例列表
     except FileNotFoundError:
         print(f"文件未找到: {file_path}")
     except json.JSONDecodeError:
@@ -73,4 +71,3 @@ if __name__ == "__main__":
     settings = load_settings('Setting.Conf')
     if settings:
         print("配置文件内容:", settings)
-

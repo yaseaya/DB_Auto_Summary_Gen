@@ -8,23 +8,30 @@ import pyperclip  # 导入pyperclip库以处理剪贴板
 import time  # 导入time库以处理时间延迟
 import getpass  # 导入getpass库以获取当前用户名
 import os
-
+from Utility_Str import Utility_Str
 
 def print_sleep(sleep_time):
     for i in range(sleep_time):  # 模拟处理20次
         # print("sleep time " + str(i) + " seconds")  # 打印处理状态和时间
         time.sleep(1)  # 每次处理间隔1秒
 
+# 定义模块名称和输出文件的扩展名
+str_Module_Engine_Name = "_[DouBao_Article_Summary]"
+str_Output_File_Extension = ".md"
 
+def main(file_path_source, target_Folder_Name ):  # 增加_main_函数，接收file_path作为参数     
 
-def main(file_path):  # 增加_main_函数，接收file_path作为参数
+    file_path_source = Utility_Str.Remove_quotes_to_string( file_path_source )  # 去除引号
+    target_Folder_Name = Utility_Str.Remove_quotes_to_string( target_Folder_Name )  # 去除引号
+
     print('########################## 【豆包总结 】脚本开始 ##########################')
 
-    if not os.path.exists(file_path):
-        print(f"{file_path} Not existed, please check the correct file")
+    if not os.path.exists(file_path_source ) :
+        print(f"{file_path_source   } Not existed, please check the correct file")
         return
     else:
-        print(f"{file_path} Existed, continue")
+        print(f"{file_path_source} Existed, continue")
+
             
     # 获取当前用户名并设置Chrome用户数据目录路径
     username = getpass.getuser()  # 获取当前系统用户名
@@ -78,7 +85,7 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         print_sleep(2)  # 暂停2秒以等待操作完成
 
         # 上传文件
-        driver.find_element(By.XPATH, "//input[@type='file']").send_keys(file_path)  # 定位文件上传输入框并上传文件
+        driver.find_element(By.XPATH, "//input[@type='file']").send_keys(file_path_source)  # 定位文件上传输入框并上传文件
 
         # 在提示词输入框中输入文本
         iuput_field = driver.find_element(By.CSS_SELECTOR, "[data-testid='chat_input_input']")  # 定位输入框
@@ -124,6 +131,8 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         # 打印剪贴板内容
         print(clipboard_content)  # 打印剪贴板内容
 
+        
+
         ###########################################################
         # 在提示词输入框中输入文本
         print_sleep(3)  # 暂停5秒以等待用户查看结果
@@ -143,11 +152,12 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         while generating:  # 循环直到生成完成
             try:
                 regenerate_button = driver.find_element(By.CSS_SELECTOR, "[data-testid='message_action_regenerate']")  # 定位重新生成按钮
-                generating = False  # 更新��成状态为完成
+                generating = False  # 更新成状态为完成
             except:
                 print("except: 状态变化的时候，element 会变化报错")  # 捕获异常并打印错误信息
                 print_sleep(5)  # 暂停5秒以等待生成完成
 
+        print_sleep(2)  # 暂停2秒以等待生成完成
         copy_button = driver.find_element(By.CSS_SELECTOR, "[data-testid='message_action_copy']")  # 定位复制按钮
 
         # 等待5秒
@@ -169,8 +179,40 @@ def main(file_path):  # 增加_main_函数，接收file_path作为参数
         print_sleep(5)  # 暂停10秒以等待用户查看结果
 
         # 将内容写入文件
-        with open("sample.txt", "w", encoding="utf-8") as file:  # 打开文件以写入
-            file.write(clipboard_content)  # 将剪贴板内容写入文件
+        ########################################################################
+      
+        file_Name_ToBe_Summarized = file_path_source.split("\\")[-1] if "\\" in file_path_source else file_path_source.split("/" )[-1]  # 获取文件名
+        print(f"原文件名： {file_Name_ToBe_Summarized}")  # 打印原文件名  
+
+        file_target_Name_Summarized = file_Name_ToBe_Summarized.split(".")[0] + str_Module_Engine_Name + str_Output_File_Extension  # 设置目标文件的完整路径
+        print(f"总结文件名： {file_target_Name_Summarized}")  # 打印总结文件名  
+
+        # 通过源文件生成新的文件名
+        file_path_target = target_Folder_Name + "/" + file_target_Name_Summarized  # 设置目标文件的完整路径
+        print(file_path_target)  # 打印目标文件路径
+        
+        # 写入文件
+        # 如果文件不存在，则写入文件
+        if not os.path.exists(file_path_target):
+            try:
+                with open(file_path_target, "w", encoding="utf-8") as file:  # 打开文件以写入
+                    file.write( clipboard_content)  # 将剪贴板内容写入文件  
+                    return
+            except Exception as e:
+                print(f"处理消息 {file_path_target} 时发生错误: {e}")
+                return
+        else:   # 如果文件存在，则生成不重复的文件名
+            file_path_target = Utility_Str.generate_unique_filename(file_path_target)
+            print(f"文件 {file_path_target} 已经存在，已生成不重复的文件名: {file_path_target}")
+            # file_path_target = target_Folder_Name + "/" + file_target_Name_Summarized
+            try:
+                with open(file_path_target, "w", encoding="utf-8") as file:  # 打开文件以写入
+                    file.write( clipboard_content)  # 将剪贴板内容写入文件  
+                    return
+            except Exception as e:
+                print(f"处理消息 {file_path_target} 时发生错误: {e}")
+                return
+           
 
     finally:
         # 脚本结束

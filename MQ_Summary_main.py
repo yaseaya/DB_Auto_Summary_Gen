@@ -1,6 +1,12 @@
 import pika
 import subprocess
 import time
+import logging
+from Utility_Str import Utility_Str
+
+# 配置日志
+logging.basicConfig(level=logging.INFO,  # 设置日志级别
+                    format='%(asctime)s - %(levelname)s - %(message)s')  # 设置日志格式
 
 # 设计思路
 # 本程序使用RabbitMQ作为消息队列，处理来自txt_file_queue和av_file_queue的消息。
@@ -33,13 +39,19 @@ def reconnect_MQ():
             time.sleep(5)  # 等待5秒后重试
             retry_count += 1
 def callback_txt_file_queue(ch, method, properties, body):
-    txt_file_name = body.decode()  # 解码接收到的消息
+    
+    print("输出全部参数: " + body.decode())
+    # 使用 split() 方法分割字符串，并去掉引号
+    txt_file_name = Utility_Str.extract_parameters_to_str( body.decode(), 1 )   # 解码并提取第一个参数
+    print("输出第一个参数 txt_file_name: " + txt_file_name)  # 输出第一个参数  
+    txt_file_name_target = Utility_Str.extract_parameters_to_str( body.decode(), 2 )  # 解码接收到的消息 并获取第二个参数
+    print("输出第二个参数 txt_file_name_target: " + txt_file_name_target)  # 输出第二个参数
     print(f"Received from txt_file_queue: {txt_file_name}")
     
     try:
         from DouBao_Article_Summary import main as doubao_art_summary_main
-        doubao_art_summary_main(txt_file_name)  # 调用Doubao_Art_summary的主函数
-        subprocess.Popen(['python', 'Doubao_Article_summary.py', txt_file_name])  # 启动另一个Python程序
+        doubao_art_summary_main(txt_file_name, txt_file_name_target)  # 调用Doubao_Art_summary的主函数
+        # subprocess.Popen(['python', 'Doubao_Article_summary.py', txt_file_name, txt_file_name_target])  # 启动另一个Python程序，并传递文件名作为参数
     except FileNotFoundError:
         print("文件或目录不存在")  # 捕获文件未找到异常
     except Exception as e:
@@ -76,17 +88,18 @@ def callback_av_file_queue(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
+    logging.info("程序开始运行")
     # 设置心跳时间为600秒
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', heartbeat=600))  # 连接到RabbitMQ
     channel = connection.channel()
 
-    if(1):  # 清除已存在的txt_file_queue
-        channel.queue_delete(queue='txt_file_queue')
-        # 清除已存在的av_file_queue
-        channel.queue_delete(queue='av_file_queue')
+    # 清除已存在的txt_file_queue
+    # channel.queue_delete(queue='txt_file_queue')
+    # # 清除已存在的av_file_queue
+    # channel.queue_delete(queue='av_file_queue')
 
-        channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
-        channel.queue_declare(queue='av_file_queue')   # 声明av_file_queue
+    # channel.queue_declare(queue='txt_file_queue')  # 声明txt_file_queue
+    # channel.queue_declare(queue='av_file_queue')   # 声明av_file_queue
 
     # 设置预取计数为1，确保一个任务完成后再接收下一个任务
     channel.basic_qos(prefetch_count=1)
@@ -109,6 +122,8 @@ def main():
         # 处理连接状态错误的逻辑
         time.sleep(5)
         reconnect_MQ()        
+
+    logging.info("程序运行结束")
 
 def send_message_Txt_File_Ready(txt_file_name):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))  # 连接到RabbitMQ
